@@ -1,0 +1,458 @@
+\documentclass[spanish,12pt]{report}
+\usepackage[utf8]{inputenc} 
+\usepackage[T1]{fontenc}
+\usepackage[shiftmargins]{vmargin}
+\setpapersize{USletter}
+%%\setmarginsrb{left}{top}{right}{bottom}{headhgt}{headsep}{foothgt}{footskip}
+\setmarginsrb{3.2cm}{2cm}{1.8cm}{2cm}{0.5cm}{0.5cm}{0.5cm}{0.5cm}
+
+\usepackage[authoryear,sort]{natbib}
+
+
+\title{Resumen de actividades realizadas por NeoMapas hasta 2010}
+\author{JR Ferrer-Paris}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\chapter{Introducción}
+
+\chapter{Datos de las transectas}
+
+<<eval=true, echo=true,results=hide>>=
+require(foreign)
+load(file="~/NeoMapas/Rdata/SIG.rda")
+load(file="~/NeoMapas/Rdata/NM.rda")
+VBG <- read.dbf("/var/local/gis/mi.gis/Venezuela/NeoMapas/dbf/VBG.dbf")
+CNEB.nm <- merge(CNEB@data,VBG, by=1:5)
+
+rngs <- CNEB.nm[,grep("max",colnames(CNEB.nm),value=T)]-CNEB.nm[,grep("min",colnames(CNEB.nm),value=T)]
+
+colnames(rngs) <- sub("max","rng",colnames(rngs))
+CNEB.nm <- cbind(CNEB.nm,rngs)
+
+vars.nm <- c("lon", "lat", "altr_avrg", "altr_rng", "tmpm_avrg", "tmpm_rng", "prcp_avrg", "prcp_rng", "mscs_avrg", "mscs_rng", "bosq_avrg", "bosq_rng", "decd_avrg", "decd_rng")
+vars.nm <- c("altr_avrg", "prcp_rng","prcp_avrg", "tmpm_rng", "mscs_avrg", "mscs_rng", "bosq_avrg", "bosq_rng", "decd_avrg", "decd_rng")
+
+mi.cneb <- CNEB.nm[CNEB.nm$UM==1,vars.nm]
+rownames(mi.cneb) <- CNEB.nm[CNEB.nm$UM==1,"cdg"]
+VIFs <- c()
+for (mv in vars.nm) {
+	VIFs <- c(VIFs,(sqrt(1/(1-summary(step(lm(formula(paste(mv,"~",".")),mi.cneb)))$adj.r.squared))))
+}
+VIFs
+
+env.pc <- rda(mi.cneb,scale=T)
+##env.dudi <- dudi.pca(mi.cneb,scannf=F,nf=3)
+CNEB.nm$PC1 <- CNEB.nm$PC2 <- CNEB.nm$PC3 <- numeric(nrow(CNEB.nm))
+CNEB.nm[CNEB.nm$UM==1,c("PC1","PC2","PC3")] <- scores(env.pc, choices=1:3,display="sites")
+
+## PC1 altura precipitacion y temperatura
+## PC2 cobertura boscosa
+## PC3 meses secos
+cor(scores(env.pc,choice=1:3,display="wa"),mi.cneb)
+
+require(randomForest)
+mi.rf <- randomForest(y=as.factor(CNEB.nm$est[CNEB.nm$UM==1 & CNEB.nm$est>0]),x=CNEB.nm[CNEB.nm$UM==1  & CNEB.nm$est>0,15:47])
+CNEB.nm$est.pr <- predict(mi.rf,CNEB.nm)
+
+CNEB.nm$est.pr[CNEB.nm$UM==1 & CNEB.nm$est>0] <- CNEB.nm$est[CNEB.nm$UM==1 & CNEB.nm$est>0]
+
+CNEB.nm$bioreg <- factor(CNEB.nm$bioreg)
+CNEB.nm$est.pr <- factor(CNEB.nm$est.pr)
+
+
+@ 
+
+\section{Datos de mariposas en Base de Datos}
+
+<<eval=true, show=true>>=
+mi.jmp <- jmp.NM[(jmp.NM$tvn %in% tvn.NM$tvn[tvn.NM$yr %in% "2006"])&jmp.NM$fam=="Pieridae" & !is.na(jmp.NM$genero),]
+mi.jmp$esp <- paste(mi.jmp$genero,mi.jmp$especie)
+
+mrps.NM <- tapply(mi.jmp$jmp,list(mi.jmp$NM,mi.jmp$esp),function(x){length(unique(x))})
+mrps.NM[is.na(mrps.NM)] <- 0
+mrps.NM <- mrps.NM[,colSums(mrps.NM)>0]
+mrps.CN <- mrps.NM
+rownames(mrps.NM) <- info.NM$Nombre[match(as.numeric(rownames(mrps.NM)),info.NM$NM)]
+rownames(mrps.CN) <- info.NM$CNEB[match(as.numeric(rownames(mrps.CN)),info.NM$NM)]
+@ 
+
+\section{Identificación de escarabajos por Solís}
+
+<<eval=true, echo=true>>=
+tmp <- read.csv("~/NeoMapas/data/AngelSolisDatos/DatosScarabSetiembre2010.csv", sep="\t", header=T, as.is=T,nrow=5)
+scrb.solis <- read.csv("~/NeoMapas/data/AngelSolisDatos/DatosScarabSetiembre2010.csv", sep="\t", header=F, as.is=T, skip=2)
+colnames(scrb.solis) <- c("NM", "Prd", "Fecha", "Caja", "ADN", colnames(tmp)[6:ncol(tmp)])
+##head(tmp)
+scrb.solis$yr <- sapply(scrb.solis$Fecha,function(x){strsplit(x,"/")[[1]][3]},simplify=T)
+scrb.solis$ttl <- rowSums(scrb.solis[,colnames(tmp)[6:(ncol(tmp)-1)]])
+scrb.solis <- scrb.solis[!is.na(scrb.solis$yr) & !(scrb.solis$NM %in% c("1000IVIC","41")),]
+
+
+scrb.06 <- rowsum(scrb.solis[scrb.solis$yr %in% "06",6:(ncol(scrb.solis)-4)],
+                  group=scrb.solis$NM[scrb.solis$yr %in% "06"])
+scrb.09 <- rowsum(scrb.solis[scrb.solis$yr %in% c("09","10"),6:(ncol(scrb.solis)-4)],
+                  group=scrb.solis$NM[scrb.solis$yr %in%  c("09","10")])
+scrb.09 <- rbind(scrb.09,
+                 scrb.06[rownames(scrb.06) %in% c(13,16,18,2,27,5),])
+
+##rownames(scrb.06) <- info.NM$Nombre[match(rownames(scrb.06),info.NM$NM)
+scrb.CN <- info.NM$CNEB[match(rownames(scrb.09),info.NM$NM)]
+
+rownames(scrb.09) <- info.NM$Nombre[match(rownames(scrb.09),info.NM$NM)]
+
+dim(scrb.09[,colSums(scrb.09)>0])
+
+@ 
+
+
+\section{Datos de NeoMapas Aves}
+
+<<eval=true, echo=true>>=
+NM.m1 <- read.csv("~/NeoMapas/data/NMAves2010/Muestreo1.2010.corregido")
+NM.m2 <- read.csv("~/NeoMapas/data/NMAves2010/Muestreo2.2010.corregido")
+spp.aves <- read.csv("~/NeoMapas/data/NMAves2010/Venezuela.2010.corregido")
+trans.info <- read.csv("~/NeoMapas/data/NMAves2010/Transectas.2010.corregido",as.is=T)
+
+mi.ss <- NM.m1$Especieid!=1379
+m1 <- table(NM.m1$IDTransecta[mi.ss],NM.m1$Especieid[mi.ss])
+m1 <- tapply(NM.m1$Ntotal[mi.ss],list(NM.m1$IDTransecta[mi.ss],NM.m1$Especieid[mi.ss]),sum,na.rm=T)
+m1[is.na(m1)] <- 0
+
+m1.CN <- m1
+rownames(m1) <- trans.info[match(rownames(m1),trans.info$IDTransecta),"Nombretransecta"]
+
+rownames(m1.CN) <- info.NM$CNEB[match(rownames(m1),info.NM$Nombre)]
+
+
+mi.ss <- NM.m2$Especieid!=1379
+m2 <- table(NM.m2$IDTransecta[mi.ss],NM.m2$Especieid[mi.ss])
+@ 
+
+
+\section{Mapas}
+
+<<eval=false, echo=false>>=
+require(sp)
+
+slc.avs <- info.NM$CNEB[match(rownames(m1),info.NM$Nombre)]
+slc.scrb <- info.NM$CNEB[match(rownames(scrb.09),info.NM$Nombre)]
+tds.scrb <- info.NM$CNEB[match(as.numeric(unique(trmp.NM$NM[!is.na(trmp.NM$NM)])),info.NM$NM)]
+slc.mrps <- info.NM$CNEB[match(rownames(mrps.NM),info.NM$Nombre)]
+tds.mrps <- info.NM$CNEB[match(as.numeric(unique(tvn.NM$NM[!is.na(tvn.NM$NM)])),info.NM$NM)]
+
+##plot(CNEB,border="grey77")
+
+##plot(CNEB[CNEB@data$cdg %in% slc.avs,],add=T,density=10,angle=120)
+##plot(CNEB[CNEB@data$cdg %in% slc.scrb,],add=T,density=10, angle=30)
+##plot(CNEB[CNEB@data$cdg %in% slc.mrps,],add=T,density=10, angle=90)
+##plot(vzla,border="maroon",add=T)
+
+pdf(file=paste("~/NeoMapas/img/Figs/",mi.dir,"/MAPA_ColectasAves.pdf",sep=""), width=10, height=8)
+par(mar=c(0,0,3,0))
+plot(CNEB,border="grey77")
+title(main="Aves 2010")
+plot(CNEB[CNEB@data$cdg %in% slc.avs,],add=T,col="slateblue3")
+plot(vzla,border="maroon",add=T)
+dev.off()
+
+
+pdf(file=paste("~/NeoMapas/img/Figs/",mi.dir,"/MAPA_ColectasMariposas.pdf",sep=""), width=10, height=8)
+par(mar=c(0,0,3,0))
+plot(CNEB,border="grey77")
+title(main="Mariposas (2005 a 2010)")
+plot(CNEB[CNEB@data$cdg %in% tds.mrps,],add=T,col="grey77")
+plot(CNEB[CNEB@data$cdg %in% slc.mrps,],add=T,col="slateblue3")
+plot(vzla,border="maroon",add=T)
+dev.off()
+
+pdf(file=paste("~/NeoMapas/img/Figs/",mi.dir,"/MAPA_ColectasEscarabajos.pdf",sep=""), width=10, height=8)
+par(mar=c(0,0,3,0))
+plot(CNEB,border="grey77")
+title(main="Escarabajos (2005 a 2010)")
+plot(CNEB[CNEB@data$cdg %in% tds.scrb,],add=T,col="grey77")
+plot(CNEB[CNEB@data$cdg %in% slc.scrb,],add=T,col="slateblue3")
+plot(vzla,border="maroon",add=T)
+dev.off()
+
+@ 
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=16cm]{/home/jferrer/NeoMapas/img/Figs/200_InformeNeoMapas2010/MAPA_ColectasEscarabajos.pdf}
+\end{center} 
+\caption[Mapa con colectas de escarabajos]{Mapa con colectas de escarabajos.}
+\label{MAPA:SCR}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=16cm]{/home/jferrer/NeoMapas/img/Figs/200_InformeNeoMapas2010/MAPA_ColectasMariposas.pdf}
+\end{center} 
+\caption[Mapa con colectas de mariposas]{Mapa con colectas de mariposas.}
+\label{MAPA:MRP}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=16cm]{/home/jferrer/NeoMapas/img/Figs/200_InformeNeoMapas2010/MAPA_ColectasAves.pdf}
+\end{center} 
+\caption[Mapa con observaciones de aves]{Mapa con observación de aves.}
+\label{MAPA:AVS}
+\end{figure}
+
+
+\chapter{Resultados}
+
+\section{Diversidad $\gamma$}
+
+La curva de acumulación de especies a nivel nacional muestra que los muestreos de NeoMapas no alcanzan un inventario total de las especies. Sólo para el caso de la familia pieridae se observa una saturación, pero el número de especies alcanzado está aún por debajo del número de especies conocidas para el país.
+
+<<eval=true,echo=true,fig=true>>=
+scrb.tau <- specaccum(scrb.09,method="exact",conditioned=FALSE,gamma="chao")
+mrps.tau <- specaccum(mrps.NM,method="exact",conditioned=FALSE,gamma="chao")
+aves.tau <- specaccum(m1,method="exact",conditioned=FALSE,gamma="chao")
+layout(matrix(1:4,ncol=2))
+plot(scrb.tau,
+     xlab="Número de transectas", ylab="Número de especies", 
+     ci.type="polygon", col = "grey77", ci.col = "grey77",border="grey77")
+plot(scrb.tau,add=T,ci=0)
+plot(mrps.tau,
+     xlab="Número de transectas", ylab="Número de especies", 
+     ci.type="polygon", col = "grey77", ci.col = "grey77",border="grey77")
+plot(mrps.tau,add=T,ci=0)
+plot(aves.tau,
+     xlab="Número de transectas", ylab="Número de especies", 
+     ci.type="polygon", col = "grey77", ci.col = "grey77",border="grey77")
+plot(aves.tau,add=T,ci=0)
+@ 
+
+\section{Composición}
+
+Realizamos un análisis de composición basado en medidas de distancia biótica o disimilitud. Primero calculamos matrices de distancia entre las regiones de colecta basados en los índices de \emph{jaccard}, \emph{mountford}, y \emph{chao} para cada uno de los grupos taxonómicos. A cada matriz le aplicamos un algoritmo de clasificación jerárquica por aglomeración y calculamos el coeficiente de aglomeración de la clasificación obtenida ($c_{ag}$). El coeficiente de aglomeración se basa en la relación entre la disimilitud de cada uno de los pasos del algoritmo y la disimilitud del paso final y por tanto es una medida de la estructura de la clasificación obtenida. Valores de $c_{ag}$ cercanos a 1 indican mayor estructura y valores cercanos a 1 indican menor estructura.
+
+<<eval=true, echo=false, fig=false,results=tex>>=
+require(vegan)
+require(cluster)
+require(xtable)
+require(labdsv)
+dts <- c()
+mtds <- c("mountford","jaccard","chao")
+for (mtd in mtds) {
+  mi.d0 <- vegdist(mrps.NM,mtd)
+  mi.d1 <- vegdist(scrb.09,mtd)
+  mi.d2 <- vegdist(m1,mtd)
+  mi.h0 <- agnes(mi.d0)
+  mi.h1 <- agnes(mi.d1)
+  mi.h2 <- agnes(mi.d2)
+  dts <- c(dts,mi.h0$ac,mi.h1$ac,mi.h2$ac)
+}
+
+xtable(matrix(dts,ncol=3,
+       dimnames=list(c("Pieridae","Scarabaeinae","Aves"),
+         mtds)),
+       caption="Coeficiente de aglomeración según un algoritmo de aglomeración jerárquica (agnes) para tres medidas de disimilitud biótica y los tres grupos de estudio de NeoMapas.")
+
+@ 
+
+Los resultados indican que las matrices construidas con el índice de \emph{chao} tienen mayor estructura que las matrices construidas con los otros índices. Por otro lado la matriz de distancias basadas en los datos de las Piérides están más estructuradas que las de los otros grupos.
+
+<<eval=true, echo=true, fig=true>>=
+plot(mi.h0,which.plots=2)
+@ 
+
+
+<<eval=true, echo=true, fig=true>>=
+plot(mi.h1,which.plots=2)
+@ 
+
+
+<<eval=true, echo=true, fig=true>>=
+plot(mi.h2,which.plots=2)
+@ 
+
+
+
+\section{NeoMapas Mariposas 2006}
+<<eval=false, echo=false, fig=false>>=
+
+ rf1 <- radfit(as.data.frame(mrps.NM))
+pdf(file=paste("~/NeoMapas/img/Figs/",mi.dir,"/FIG_RADMariposas.pdf",sep=""), width=10, height=8)
+print(plot(rf1))
+dev.off()
+graphics.off()
+
+@ 
+
+
+%\begin{figure}[htbp]
+%\begin{center}
+%\includegraphics[width=16cm]{/home/jferrer/NeoMapas/img/Figs/200_InformeNeoMapas2010/FIG_RADMariposas.pdf}
+%\end{center} 
+%\caption[Distribución abundancias Mariposas]{Distribución de abundancias, Mariposas.}
+%\label{RAD:MRP}
+%\end{figure}
+
+Para ver cuales variables explican mejor las diferencias en composición podemos hacer un análisis de MANOVA permutacional (adonis).
+
+<<eval=true, echo=true, fig=false>>=
+mrps.cneb <- CNEB.nm[match(rownames(mrps.CN),CNEB.nm$cdg),]
+table(mrps.cneb[,c("bioreg","est.pr")])
+##adonis(mi.d1~bioreg+est.pr,scrb.cneb)
+adonis(mi.d0~bioreg*(PC1+PC2+PC3),mrps.cneb)
+@ 
+<<eval=true, echo=true, fig=false>>=
+scrb.cneb <- CNEB.nm[match(scrb.CN,CNEB.nm$cdg),]
+table(scrb.cneb[,c("bioreg","est.pr")])
+##adonis(mi.d1~bioreg+est.pr,scrb.cneb)
+adonis(mi.d1~bioreg*(PC1+PC2+PC3),scrb.cneb)
+@ 
+
+<<eval=true, echo=true, fig=false>>=
+aves.cneb <- CNEB.nm[match(rownames(m1.CN),CNEB.nm$cdg),]
+table(aves.cneb[,c("bioreg","est.pr")])
+##adonis(mi.d1~bioreg+est.pr,scrb.cneb)
+adonis(mi.d2~bioreg*(PC1+PC2+PC3),aves.cneb)
+@ 
+
+Hacemos un análisis de coordenadas principales para ver como explican las variables seleccionadas la relación entre especies y regiones. En la figura observamos el resultado del análisis de escarabajos basado en la raíz cuadrada de la distancia de \emph{chao}. Se observan las variables en azul (flechas para las variables continuas y nombre para las categóricas), los nombres de las localidades en gris y las especies en rojo. Se colocan los nombres de las especies que se pueden considerar indicadoras de las demás especies.
+
+<<eval=true, echo=true, fig=true>>=
+
+x <- capscale(scrb.09~PC1+PC2+PC3+bioreg,data=scrb.cneb,
+              sqrt.dist = TRUE,
+              distance = "chao", dfun=vegdist)
+##x <- rda(decostand(scrb.09,method="log"))
+y <- plot(x,scaling=-1,col=2,pch=4,type="none")
+text(x,display="cn",scaling=-1,col="blue",cex=.7)
+text(x, display = "wa",cex=.5,col="grey56",scaling=-1)
+points(x,scaling=-1,display="sp",col=2,pch=3,cex=.6,select=colnames(scrb.09)[rowSums(indpower(scrb.09),na.rm=T)<=43])
+##identify(y,what="species")
+text(x,scaling=-1,display="sp",select=colnames(scrb.09)[rowSums(indpower(scrb.09),na.rm=T)>43],cex=.5,col=2)
+
+
+@ 
+
+Otra selección de especies: valor indicador para una región o una combinación de variables ambientales
+<<>>=
+summary(indval(scrb.09,clustering=as.numeric(as.character(scrb.cneb$bioreg))))
+summary(indval(scrb.09,clustering=as.numeric(as.character(scrb.cneb$est.pr)))) 
+
+summary(indval(mrps.NM,clustering=as.numeric(as.character(mrps.cneb$bioreg))))
+##summary(indval(mrps.NM,clustering=as.numeric(as.character(mrps.cneb$est.pr)))) 
+
+summary(indval(m1,clustering=as.numeric(as.character(aves.cneb$bioreg))))
+summary(indval(m1,clustering=as.numeric(as.character(aves.cneb$est.pr)))) 
+
+@ 
+
+
+<<fig=true>>=
+mi.cneb <- CNEB.nm[match(rownames(mrps.CN),CNEB.nm$cdg),]
+
+ 
+require(nlme)
+nspp <- rowSums(mrps.NM>0)
+njmp <- rowSums(mrps.NM)
+mrps.dts <- data.frame(nspp = rowSums(mrps.NM>0),njmp = rowSums(mrps.NM),
+                       mi.cneb[,c("PC1","PC2","PC3","bioreg")])
+
+mi.nls <- nls(nspp~SSmicmen(njmp,Vm,K),
+                mrps.dts)
+
+plot(nspp~njmp)
+x <- 1:700
+
+lines(x,predict(mi.nls,data.frame(njmp=x)))
+
+mi.nls <- nlme(nspp~SSmicmen(njmp,Vm,K),
+                mrps.dts,
+                fixed=Vm~1+PC1+PC2+PC3+bioreg,
+                 groups=~bioreg,
+                random=pdDiag(K~1),
+                start=list(fixed=nspp[1:8]*1.5),
+                na.action=na.omit,method="ML",
+                control=list(msVerbose=T,minScale=0.001,tolerance=1e-1))
+
+##plot(nspp,predict(mi.nls))
+##abline(a=0,b=1,lty=2,col=2)
+
+
+## no funciona        
+##predict(mi.nls,cbind(CNEB.nm,njmp=rep(500,nrow(CNEB.nm)))[CNEB.nm$UM==1,c("njmp","bioreg","PC1","PC2","PC3")])
+mrps.pred <- estimateR(mrps.NM)
+##plot(mrps.pred["S.obs",],mrps.pred["S.ACE",])
+##abline(a=0,b=1,lty=2,col=2)
+diversity(mrps.NM)
+
+plot(mrps.pred["S.ACE",],diversity(mrps.NM),pch=NA)
+text(mrps.pred["S.ACE",],diversity(mrps.NM),rownames(mrps.NM),cex=.5)
+
+@ 
+
+<<fig=true>>=
+ print(plot(renyi(mrps.NM)))
+@
+<<fig=true>>=
+ print(plot(renyi(scrb.09)))
+@
+<<fig=true>>=
+ print(plot(renyi(m1)))
+
+@ 
+\section{NeoMapas Escarabajos 2006 a 2010}
+
+<<eval=false, echo=false>>=
+
+ rf1 <- radfit(as.data.frame(scrb.09))
+print(plot(rf1))
+@ 
+<<eval=true, echo=true, fig=false>>=
+
+
+mi.cneb <- CNEB.nm[match(scrb.CN,CNEB.nm$cdg),]
+
+table(CNEB.nm[match(rownames(mrps.CN),CNEB.nm$cdg),c("bioreg","est.pr")])
+table(CNEB.nm[CNEB.nm$UM==1,c("bioreg","est.pr")])
+
+adonis(mi.d1~bioreg+est.pr,mi.cneb)
+adonis(mi.d1~bioreg*(PC1+PC2+PC3),mi.cneb)
+
+
+@ 
+<<eval=true, echo=true, fig=true>>=
+x <- rda(decostand(scrb.09,method="log"))
+plot(x)
+text(x, display = "sites")
+
+@ 
+
+\section{NeoMapas Aves}
+
+<<eval=true, echo=true, fig=true>>=
+
+plot(rowSums(m1),rowSums(m1>0),xlab='individuos observados',ylab='especies detectadas',col="grey77")
+text(rowSums(m1),rowSums(m1>0),rownames(m1),col="maroon",cex=.8,adj=c(-.5,0))
+@ 
+<<eval=false, echo=false, fig=false>>=
+
+ rf1 <- radfit(as.data.frame(m1))
+
+plot(rf1)
+@ 
+<<eval=true, echo=true, fig=false>>=
+
+mi.cneb <- CNEB.nm[match(rownames(m1.CN),CNEB.nm$cdg),]
+
+table(CNEB.nm[match(rownames(m1.CN),CNEB.nm$cdg),c("bioreg","est.pr")])
+
+adonis(mi.d2~bioreg+est.pr,mi.cneb)
+adonis(mi.d2~bioreg*(PC1+PC2+PC3),mi.cneb)
+
+@ 
+
+\chapter{Discusión}
+
+\end{document}
