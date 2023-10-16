@@ -1,0 +1,352 @@
+\documentclass[spanish,12pt]{report}
+\usepackage[utf8]{inputenc} 
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+
+\usepackage[shiftmargins]{vmargin}
+\setpapersize{USletter}
+%%\setmarginsrb{left}{top}{right}{bottom}{headhgt}{headsep}{foothgt}{footskip}
+\setmarginsrb{3.2cm}{2cm}{1.8cm}{2cm}{0.5cm}{0.5cm}{0.5cm}{0.5cm}
+
+\usepackage[authoryear,sort]{natbib}
+
+
+\title{Resumen de actividades realizadas por NeoMapas hasta 2010}
+\author{JR Ferrer-Paris}
+\date{\today}
+
+\begin{document}
+\setkeys{Gin}{width=\textwidth}
+\maketitle
+
+<<eval=false, echo=false, fig=false>>=
+x <- rda(decostand(scrb.NM,method="log"))
+plot(x)
+text(x, display = "sites")
+
+@ 
+
+<<eval=false, echo=false, fig=false>>=
+
+plot(rowSums(aves.NM),rowSums(aves.NM>0),xlab='individuos observados',ylab='especies detectadas',col="grey77")
+text(rowSums(aves.NM),rowSums(aves.NM>0),rownames(aves.NM),col="maroon",cex=.8)
+@ 
+<<eval=false, echo=false, fig=false>>=
+
+ rf1 <- radfit(as.data.frame(aves.NM))
+
+plot(rf1)
+@ 
+
+\section{NeoMapas Aves}
+
+<<eval=true, echo=true, fig=false>>=
+
+mi.cneb <- CNEB.nm[match(rownames(aves.CN),CNEB.nm$cdg),]
+
+table(CNEB.nm[match(rownames(aves.CN),CNEB.nm$cdg),c("bioreg","est.pr")])
+
+##adonis(mi.d2~bioreg+est.pr,mi.cneb)
+adonis(mi.d2~bioreg+PC1+PC2+PC3,mi.cneb)
+##adonis(mi.d2~bioreg*(PC1+PC2+PC3),mi.cneb)
+
+@ 
+
+\section{NeoMapas Escarabajos 2006 a 2010}
+
+<<eval=false, echo=false>>=
+
+ rf1 <- radfit(as.data.frame(scrb.NM))
+print(plot(rf1))
+@ 
+<<eval=true, echo=true, fig=false>>=
+mi.cneb <- CNEB.nm[match(scrb.CN,CNEB.nm$cdg),]
+
+table(CNEB.nm[match(rownames(mrps.CN),CNEB.nm$cdg),c("bioreg","est.pr")])
+table(CNEB.nm[CNEB.nm$UM==1,c("bioreg","est.pr")])
+
+##adonis(mi.d1~bioreg+est.pr,mi.cneb)
+adonis(mi.d1~bioreg+(PC1+PC2+PC3),mi.cneb)
+
+
+@ 
+
+
+
+\section{Diversity Partitioning}
+
+<<eval=true, echo=true, fig=false, results=tex>>=
+
+mi.cneb <- CNEB.nm[match(scrb.CN,CNEB.nm$cdg),]
+
+m2.cneb <- CNEB.nm[match(rownames(scrb.LIT.um),CNEB.nm$cdg),]
+
+##mi.cneb$est.bio <- factor(paste(mi.cneb$bioreg,mi.cneb$est.pr))
+##  multipart(scrb.NM ~ bioreg, scrb.cneb, index="renyi", nsimul=20)
+##mi.cneb$cdg <- as.factor(1:nrow(mi.cneb))
+##mi.cneb$ttl <- as.factor(1)
+##adipart(scrb.NM ~ cdg + est.bio + bioreg, mi.cneb, nsimul=99,weight="prop")
+## adipart(scrb.NM ~ cdg + bioreg + ttl, mi.cneb, nsimul=99)
+mean(apply(scrb.NM > 0, 1, sum))
+mean(rowSums(rowsum(scrb.NM,group=scrb.cneb$bioreg)>0))
+##adipart(scrb.NM[mi.cneb$bioreg=="Llanos",] ~ cdg + bioreg, mi.cneb[mi.cneb$bioreg=="Llanos",], nsimul=99,index="simpson")
+
+dts <- data.frame()
+scl <- c(1,2)
+##layout(matrix(1:15,ncol=3,byrow=F))
+##par(mar=c(3,3,0,0))
+for (br in levels(mi.cneb$bioreg)[-1]) {
+  mi.scrb <- scrb.NM[mi.cneb$bioreg %in% br,,drop=FALSE]
+  m2.scrb <- scrb.LIT.um[m2.cneb$bioreg %in% br,,drop=FALSE]
+
+  S.gamma <- sum(colSums(mi.scrb)>0)
+  S.alpha <- mean(rowSums(mi.scrb>0))
+  S.beta <- S.gamma-S.alpha
+  H.alpha <- colMeans(renyi(mi.scrb,scale=scl))
+  H.gamma <- renyi(colSums(mi.scrb),scale=scl)
+  H.beta <- H.gamma-H.alpha
+
+  S2.gamma <- sum(colSums(m2.scrb)>0)
+  S2.alpha <- mean(rowSums(m2.scrb>0))
+  S2.beta <- S2.gamma-S2.alpha
+  H2.alpha <- colMeans(renyi(m2.scrb,scale=scl))
+  H2.gamma <- renyi(colSums(m2.scrb),scale=scl)
+  H2.beta <- H2.gamma-H2.alpha
+
+  dts <- rbind(dts, data.frame(bioreg=rep(br,length(scl)+1), indice=c("S",paste("R",scl)),alpha=c(S.alpha,H.alpha), beta=c(S.beta,H.beta), gamma=c(S.gamma,H.gamma),alpha.lit=c(S2.alpha,H2.alpha), beta.lit=c(S2.beta,H2.beta), gamma.lit=c(S2.gamma,H2.gamma)))
+##   matplot(t(renyi(mi.scrb)),type="l",lty=1,ylim=c(0,4.5))
+##  lines(renyi(colSums(mi.scrb)),lwd=2,col=1,lty=3)
+##  legend(4.5,4.4,col=1:nrow(mi.scrb),rownames(mi.scrb),lty=1,ncol=2)
+}
+xtable(dts)
+@ 
+
+
+<<eval=true, echo=true, fig=false>>=
+mi.cneb <- aves.cneb
+mi.cneb$bioreg <- factor(mi.cneb$bioreg,exclude=0)
+mi.cneb$est.bio <- factor(paste(mi.cneb$bioreg,mi.cneb$est.pr))
+##  multipart(scrb.NM ~ bioreg, scrb.cneb, index="renyi", nsimul=20)
+mi.cneb$cdg <- as.factor(1:nrow(mi.cneb))
+mi.cneb$ttl <- as.factor(1)
+
+dts <- data.frame()
+scl <- c(1,2,Inf)
+
+for (br in levels(mi.cneb$bioreg)) {
+  mi.aves <- aves.NM[mi.cneb$bioreg %in% br,,drop=FALSE]
+
+  S.gamma <- sum(colSums(mi.aves)>0)
+  S.alpha <- mean(rowSums(mi.aves>0))
+  S.beta <- S.gamma-S.alpha
+  H.alpha <- colMeans(renyi(mi.aves,scale=scl))
+  H.gamma <- renyi(colSums(mi.aves),scale=scl)
+  H.beta <- H.gamma-H.alpha
+
+  dts <- rbind(dts, data.frame(bioreg=rep(br,4), indice=c("S",paste("R",scl)),alpha=c(S.alpha,H.alpha), beta=c(S.beta,H.beta), gamma=c(S.gamma,H.gamma)))
+##   matplot(t(renyi(mi.aves)),type="l",lty=1,ylim=c(0,5.4))
+##  lines(renyi(colSums(mi.aves)),lwd=2,col=1,lty=3)
+##  legend(5.5,5.4,col=1:nrow(mi.aves),rownames(mi.aves),lty=1,ncol=2)
+}
+
+dts
+@ 
+
+<<eval=false, echo=false, results=hide>>=
+summary(indval(scrb.NM,clustering=as.numeric(scrb.cneb$bioreg)))
+summary(indval(scrb.NM,clustering=as.numeric(as.character(scrb.cneb$est.pr)))) 
+
+summary(indval(mrps.NM,clustering=as.numeric(mrps.cneb$bioreg)))
+##summary(indval(mrps.NM,clustering=as.numeric(as.character(mrps.cneb$est.pr)))) 
+
+summary(indval(aves.NM,clustering=as.numeric(aves.cneb$bioreg)))
+summary(indval(aves.NM,clustering=as.numeric(as.character(aves.cneb$est.pr)))) 
+
+@ 
+
+
+<<eval=false, echo=false, fig=false>>=
+mi.cneb <- CNEB.nm[match(rownames(mrps.CN),CNEB.nm$cdg),]
+
+ 
+require(nlme)
+nspp <- rowSums(mrps.NM>0)
+njmp <- rowSums(mrps.NM)
+mrps.dts <- data.frame(nspp = rowSums(mrps.NM>0),njmp = rowSums(mrps.NM),
+                       mi.cneb[,c("PC1","PC2","PC3","bioreg")])
+
+mi.nls <- nls(nspp~SSmicmen(njmp,Vm,K),
+                mrps.dts)
+
+plot(nspp~njmp)
+x <- 1:700
+
+lines(x,predict(mi.nls,data.frame(njmp=x)))
+
+#mi.nls <- nlme(nspp~SSmicmen(njmp,Vm,K),
+#                mrps.dts,
+#                fixed=Vm~1+PC1+PC2+PC3+bioreg,
+#                 groups=~bioreg,
+#                random=pdDiag(K~1),
+#                start=list(fixed=nspp[1:8]*2.5),
+#                na.action=na.omit,method="ML",
+#                control=list(msVerbose=T,minScale=0.01,tolerance=1e-2))
+
+##plot(nspp,predict(mi.nls))
+##abline(a=0,b=1,lty=2,col=2)
+
+
+## no funciona        
+##predict(mi.nls,cbind(CNEB.nm,njmp=rep(500,nrow(CNEB.nm)))[CNEB.nm$UM==1,c("njmp","bioreg","PC1","PC2","PC3")])
+mrps.pred <- estimateR(mrps.NM)
+##plot(mrps.pred["S.obs",],mrps.pred["S.ACE",])
+##abline(a=0,b=1,lty=2,col=2)
+diversity(mrps.NM)
+
+plot(mrps.pred["S.ACE",],diversity(mrps.NM),pch=NA)
+text(mrps.pred["S.ACE",],diversity(mrps.NM),rownames(mrps.NM),cex=.5)
+
+@ 
+
+<<eval=false, echo=false, fig=false>>=
+## se puede utilizar esta función para calcular y comparar perfiles de renyi
+## para cada uno de los grupos 
+ print(plot(renyi(mrps.NM)))
+@
+<<eval=false, echo=false, fig=false>>=
+ print(plot(renyi(scrb.NM)))
+@
+<<eval=false, echo=false, fig=false>>=
+ print(plot(renyi(aves.NM)))
+
+@ 
+
+\section{NeoMapas Mariposas 2006}
+<<eval=false, echo=false, fig=false>>=
+
+ rf1 <- radfit(as.data.frame(mrps.NM))
+pdf(file=paste("~/NeoMapas/img/Figs/",mi.dir,"/FIG_RADMariposas.pdf",sep=""), width=10, height=8)
+print(plot(rf1))
+dev.off()
+graphics.off()
+
+@ 
+
+<<>>=
+##print(spp.NM[!(spp.NM %in% spp.LIT)])
+
+#mi.cneb <- CNEB.nm[match(rownames(mrps.CN),CNEB.nm$cdg),]
+#m2.cneb <- CNEB.nm[match(rownames(mrps.MSM.um),CNEB.nm$cdg),]
+
+#dts <- data.frame()
+#scl <- c(1,2)
+
+#for (br in levels(mi.cneb$bioreg)[-1]) {
+ 
+
+#  mi.scrb <- mrps.NM[mi.cneb$bioreg %in% br,,drop=FALSE]
+#  m2.scrb <- mrps.MSM.um[m2.cneb$bioreg %in% br,,drop=FALSE]
+
+#  S.gamma <- sum(colSums(mi.scrb)>0)
+#  S.alpha <- mean(rowSums(mi.scrb>0))
+#  S.beta <- S.gamma-S.alpha
+#  H.alpha <- colMeans(renyi(mi.scrb,scale=scl))
+#  H.gamma <- renyi(colSums(mi.scrb),scale=scl)
+#  H.beta <- H.gamma-H.alpha
+
+#  S2.gamma <- sum(colSums(m2.scrb)>0)
+#  S2.alpha <- mean(rowSums(m2.scrb>0))
+#  S2.beta <- S2.gamma-S2.alpha
+#  H2.alpha <- colMeans(renyi(m2.scrb,scale=scl))
+#  H2.gamma <- renyi(colSums(m2.scrb),scale=scl)
+#  H2.beta <- H2.gamma-H2.alpha
+
+#  dts <- rbind(dts, data.frame(bioreg=rep(br,length(scl)+1), indice=c("S",paste("R",scl)),alpha=c(S.alpha,H.alpha), beta=c(S.beta,H.beta), gamma=c(S.gamma,H.gamma),alpha.lit=c(S2.alpha,H2.alpha), beta.lit=c(S2.beta,H2.beta), gamma.lit=c(S2.gamma,H2.gamma)))
+
+
+#}
+
+@ 
+
+%\begin{figure}[htbp]
+%\begin{center}
+%\includegraphics[width=16cm]{/home/jferrer/NeoMapas/img/Figs/200_InformeNeoMapas2010/FIG_RADMariposas.pdf}
+%\end{center} 
+%\caption[Distribución abundancias Mariposas]{Distribución de abundancias, Mariposas.}
+%\label{RAD:MRP}
+%\end{figure}
+
+
+\setkeys{Gin}{width=.8\textwidth}
+
+\begin{figure}[htbp]
+\begin{center}
+<<mapaMRPS05, fig=true, eval=true, echo=false, results=hide, width=7, height=7>>=
+nm05 <- unique(tvn.NM$CN[tvn.NM$fecha < "2006-06-30"])
+cn05 <- nm05[!is.na(nm05)]
+
+##cn05 <- info.NM[info.NM$NM %in% as.numeric(nm05),"CNEB"]
+
+mi.tvn <- tvn.NM[tvn.NM$fecha < "2006-06-30",]
+pchs <- 1:4
+names(pchs) <- 2003:2006
+
+
+par(mar=c(1,0,0,0))
+plot(CNEB[CNEB@data$cdg %in% cn05,],col=NA,border=NA)
+title(main="2003 - 2006",line=-1)
+plot(vzla,border="maroon",add=T)
+plot(vzla[vzla@data$ID %in% 36,],add=T,border="maroon",col="grey87")
+
+points(lat~lon,mi.tvn,pch=19,col=pchs[as.character(mi.tvn$yr)],cex=.7)
+legend(-72,7,2003:2006,col=pchs,pch=19)
+plot(CNEB[CNEB@data$cdg %in% cn05,],border="grey17",add=T)
+text(CNEB@data[CNEB@data$cdg %in% cn05,"x"], CNEB@data[CNEB@data$cdg %in% cn05,"y"], CNEB@data[CNEB@data$cdg %in% cn05,"cdg"],cex=.5,col=1)
+@
+\end{center} 
+\caption[Distribuci—n geogr‡fica del esfuerzo de muestreo de mariposas]{Distribuci—n geogr‡fica del esfuerzo de muestreo. Los c’rculos de colores muestran las URAs donde se realizaron muestreos en cada una de las fases del trabajo de campo, los segmentos grises unen las localidades de muestreo agrupadas en cada URA.%estas URAs agrupan muestreos realizados en celdas aleda–as de la CNEB, explicaci—n en el texto.
+}
+\label{MAPA:2005}
+\end{figure}
+
+\setkeys{Gin}{width=.8\textwidth}
+
+\begin{figure}[htbp]
+\begin{center}
+<<mapaMRPS, fig=true, eval=true, echo=false, results=hide, width=7, height=7>>=
+##table(tvn.NM$NM,tvn.NM$yr)
+
+nm09 <- unique(tvn.NM$NM[tvn.NM$yr %in% c("2009","2010") & !(tvn.NM$NM %in% "97")])
+nm09 <- nm09[!is.na(nm09)]
+cn09 <- info.NM[info.NM$NM %in% as.numeric(nm09),"CNEB"]
+
+nm06 <- unique(tvn.NM$NM[tvn.NM$fecha > "2006-06-30" & tvn.NM$yr==2006])
+nm06 <- nm06[!is.na(nm06)]
+cn06 <- info.NM[info.NM$NM %in% as.numeric(nm06),"CNEB"]
+
+layout(matrix(1:2,ncol=1))
+par(mar=c(1,0,0,0))
+plot(CNEB[CNEB@data$cdg %in% c(cn05,cn06,cn09),],col=NA,border=NA)
+title(main="2006",line=-1)
+plot(vzla,border="maroon",add=T)
+plot(vzla[vzla@data$ID %in% 36,],add=T,border="maroon",col="grey87")
+plot(CNEB[CNEB@data$cdg %in% cn06,],border="grey77",add=T,col="grey17")
+text(CNEB@data[CNEB@data$cdg %in% cn06,"x"], CNEB@data[CNEB@data$cdg %in% cn06,"y"], CNEB@data[CNEB@data$cdg %in% cn06,"cdg"],cex=.7,col="white")
+box()
+
+plot(CNEB[CNEB@data$cdg %in% c(cn05,cn06,cn09),],col=NA,border=NA)
+title(main="2009 - 2010",line=-1)
+plot(vzla,border="maroon",add=T)
+plot(vzla[vzla@data$ID %in% 36,],add=T,border="maroon",col="grey87")
+plot(CNEB[CNEB@data$cdg %in% cn09,],border="grey77",add=T,col="grey17")
+text(CNEB@data[CNEB@data$cdg %in% cn09,"x"], CNEB@data[CNEB@data$cdg %in% cn09,"y"], CNEB@data[CNEB@data$cdg %in% cn09,"cdg"],cex=.7,col="white")
+box()
+@
+\end{center} 
+\caption[Distribuci—n geogr‡fica del esfuerzo de muestreo de mariposas]{Distribuci—n geogr‡fica del esfuerzo de muestreo. Los c’rculos de colores muestran las URAs donde se realizaron muestreos en cada una de las fases del trabajo de campo, los segmentos grises unen las localidades de muestreo agrupadas en cada URA.%estas URAs agrupan muestreos realizados en celdas aleda–as de la CNEB, explicaci—n en el texto.
+}
+\label{MAPA:2009}
+\end{figure}
+
+
+\end{document}

@@ -1,63 +1,7 @@
-\documentclass[spanish,12pt]{report}
-\usepackage[utf8]{inputenc} 
-\usepackage[T1]{fontenc}
-\usepackage[spanish]{babel}
-\usepackage{lscape}
-
-\usepackage[shiftmargins]{vmargin}
-\setpapersize{USletter}
-%%\setmarginsrb{left}{top}{right}{bottom}{headhgt}{headsep}{foothgt}{footskip}
-\setmarginsrb{3.2cm}{2cm}{1.8cm}{2cm}{0.5cm}{0.5cm}{0.5cm}{0.5cm}
-
-\usepackage[Glenn]{fncychap}
-\usepackage{longtable}
-\usepackage[authoryear,sort]{natbib}
-
-\usepackage[pagebackref=false,colorlinks=true,citecolor=black,linkcolor=black,filecolor=black,urlcolor=black]{hyperref}
-
-\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
-\usepackage{titling}
-
-\pretitle{\begin{center} 
-\large \colorbox{black}{\textcolor{white}{Iniciativa para el Mapeo de la Biodiversidad Neotropical}} \par \HRule \\[0.4cm] \LARGE }
-\title{Análisis inicial de los datos de NeoMapas Aves 2010}
-\posttitle{\par \HRule \\[1.5cm]
-\includegraphics[width=8cm]{/Users/jferrer/NeoMapas/img/logo_NeoMapas.jpg}
-\end{center}\vskip 0.5em}
-
-\preauthor{\large\begin{center}}
-\postauthor{\\
-Unidad de Biodiversidad del Centro de Ecología\\Instituto Venezolano de Investigaciones Científicas
-\end{center}
-\par}
-
-\predate{\begin{center}\normalsize Informe de uso interno\\NM.i.2010.03\\}
-\date{Versión de \today}
-\postdate{\par\end{center}}
-
-
-\title{Actividades realizadas por NeoMapas 2001 - 2010}
-\author{JR Ferrer-Paris}
-
-\begin{document}
-\setkeys{Gin}{width=\textwidth}
-\maketitle
-\bibliographystyle{/Users/jferrer/NeoMapas/lib/custom-bib/tesis}
-
-
-\chapter*{A quien pueda interesar}
-
-Este es un documento de uso interno de la iniciativa NeoMapas. Los datos y los resultados finales de estos análisis serán publicados de manera oportuna. Mientras tanto por favor considere esta información confidencial y preliminar, y no la difunda sin autorización expresa de los autores.
-
-Este documento es generado utilizando las funciones de \texttt{Sweave} desde una sesión de \emph{R} \citep{Tea05}, por tanto todas las tablas y figuras se generan y actualizan automáticamente a partir de los datos suministrados. Para acceso al código fuente en \emph{R} y los archivos de datos contacte al primer autor. Dentro de \emph{R} utilizamos los paquetes \emph{vegan} \citep{vegan},\emph{cluster} \citep{cluster}
-
-
-\chapter{Métodos}
-
-\section{Universo muestral y variables ambientales}
-
-Utilizamos datos viejos del universo muestral y las variables ambientales y estratos biogeográficos.
-<<eval=true, echo=true,results=hide>>=
+###################################################
+### chunk number 1: 
+###################################################
+#line 61 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 require(foreign)
 require(vegan)
 require(vegan)
@@ -70,11 +14,12 @@ load(file="~/NeoMapas/Rdata/SIG.rda")
 VBG <- read.dbf("/Users/jferrer/mi.gis/Venezuela/NeoMapas/dbf/VBG.dbf")
 CNEB.nm <- merge(CNEB@data,VBG, by=1:5)
 
-@ 
 
-Tenemos que añadir unas variables que no estaban incluidas en esta versión de los datos, y repetimos el análisis de componentes principales tal y como lo teniamos en la versión original. Las variables fueron tomadas de \citet{BO96,Hal.05,Dal.00c}
 
-<<eval=true, echo=false,results=hide>>=
+###################################################
+### chunk number 2: 
+###################################################
+#line 78 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 
 rngs <- CNEB.nm[,grep("max",colnames(CNEB.nm),value=T)]-CNEB.nm[,grep("min",colnames(CNEB.nm),value=T)]
 
@@ -94,40 +39,39 @@ VIFs
 
 env.pc <- rda(mi.cneb,scale=T)
 ##env.dudi <- dudi.pca(mi.cneb,scannf=F,nf=3)
-##CNEB.nm$PC1 <- CNEB.nm$PC2 <- CNEB.nm$PC3 <- numeric(nrow(CNEB.nm))
-##CNEB.nm[CNEB.nm$UM==1,c("PC1","PC2","PC3")] <- scores(env.pc, choices=1:3,display="sites")
+CNEB.nm$PC1 <- CNEB.nm$PC2 <- CNEB.nm$PC3 <- numeric(nrow(CNEB.nm))
+CNEB.nm[CNEB.nm$UM==1,c("PC1","PC2","PC3")] <- scores(env.pc, choices=1:3,display="sites")
 
-for (i in 1:10) {
-CNEB.nm[,paste("PC",i,sep="")] <- numeric(nrow(CNEB.nm))
-}
-CNEB.nm[CNEB.nm$UM==1,paste("PC",1:10,sep="")] <- scores(env.pc, choices=1:10,display="sites")
 
-@ 
 
-Vemos la correlación de las variables originales con los scores para ver la importancia de las mismas y la forma de interpretarlas: PC1 está relacionada con 
-altura, precipitacion y temperatura, PC2 con cobertura boscosa y PC3 con la cantidad de meses secos.
-
-<<echo=false, results=hide>>=
+###################################################
+### chunk number 3: 
+###################################################
+#line 106 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 
 ## PC1 altura precipitacion y temperatura
 ## PC2 cobertura boscosa
 ## PC3 meses secos
 cor(scores(env.pc,choice=1:3,display="wa"),mi.cneb)
 
-@ 
-Utilizamos \emph{random forests} para llenar la cuadrícula con una predicción de los estratos (así removemos ceros).
-<<>>=
+
+
+###################################################
+### chunk number 4: 
+###################################################
+#line 115 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 require(randomForest)
 mi.rf <- randomForest(y=as.factor(CNEB.nm$est[CNEB.nm$UM==1 & CNEB.nm$est>0]),x=CNEB.nm[CNEB.nm$UM==1  & CNEB.nm$est>0,15:47])
 CNEB.nm$est.pr <- predict(mi.rf,CNEB.nm)
 
 CNEB.nm$est.pr[CNEB.nm$UM==1 & CNEB.nm$est>0] <- CNEB.nm$est[CNEB.nm$UM==1 & CNEB.nm$est>0]
 
-@ 
 
-Revisamos todas las combinaciones de estratos biogeográficos y ambientales presentes en el universo muestral.
 
-<<>>=
+###################################################
+### chunk number 5: 
+###################################################
+#line 126 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 
 ##CNEB.nm$bioreg <- factor(CNEB.nm$bioreg)
 CNEB.nm$bioreg <- factor(CNEB.nm$bioreg,labels=c("Otro","Occident","Andean mountains","Coastal mountains","Llanos","Guayana"),levels=c(0,1,5,2,3,4))
@@ -140,19 +84,19 @@ CNEB.nm$est.pr <- factor(CNEB.nm$est.pr)
 dim(unique(CNEB.nm[CNEB.nm$UM==1,c("bioreg","est.pr")]))
 
 table(CNEB.nm[CNEB.nm$UM==1,c("bioreg","est.pr")])
-@ 
 
-Tabla de eigenvectors y eigenvalues.
-<<results=tex>>=
+
+###################################################
+### chunk number 6: 
+###################################################
+#line 142 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
  xtable(rbind(env.pc$CA$v[,1:3],env.pc$CA$eig[1:3]))
-@ 
 
 
-\section{Datos de NeoMapas (2001 a 2010)}
-
-Tomamos los datos de la base de datos de NeoMapas.
-
-<<echo=true>>=
+###################################################
+### chunk number 7: 
+###################################################
+#line 151 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 ## datos de las bases de datos de NeoMapas
 load(file="~/NeoMapas/Rdata/NM.rda")
 
@@ -178,11 +122,12 @@ mi.s2 <- NM.m2$Especieid!=1379
 ##aves.NM <- tapply(c(NM.m1$Ntotal[mi.ss],NM.m2$Ntotal[mi.s2]),list(c(NM.m1$IDTransecta[mi.ss],NM.m2$IDTransecta[mi.s2]),c(NM.m1$Especieid[mi.ss],NM.m2$Especieid[mi.s2])),sum,na.rm=T)
 aves.NM <- tapply(c(NM.m1$Ntotal[mi.ss]),list(NM.m1$IDTransecta[mi.ss],NM.m1$Especieid[mi.ss]),sum,na.rm=T)
 aves.NM[is.na(aves.NM)] <- 0
-@ 
 
 
-
-<<echo=false,results=hide>>=
+###################################################
+### chunk number 8: 
+###################################################
+#line 181 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 
 luq <- function(x){length(unique(x))}
 tapply(tvn.NM$NM,tvn.NM$yr,luq)
@@ -242,26 +187,12 @@ nrow(NM.m1)+nrow(NM.m2)
 nrow(NM.m1)
 dim(aves.NM)
 
-@ 
 
-\begin{tabular}{ccccc}
-\hline
-Grupo & Año & Transecciones & Esfuerzo & Ejemplares \\
-\hline
-Mariposas & 2003-2005 & \Sexpr{nms["2005"]} & \Sexpr{sfrz["2005"]} &\Sexpr{jmps["2005"]}  \\ 
-Mariposas & 2006 & \Sexpr{nms["2006"]} & \Sexpr{sfrz["2006"]} &\Sexpr{jmps["2006"]}  \\ 
-Mariposas & 2009-2010 &  \Sexpr{nms["2009"]} &\Sexpr{sfrz["2009"]} &\Sexpr{jmps["2009"]}  \\ 
-\hline
-Escarabajos & 2005 & \Sexpr{nme["2005"]} & \Sexpr{sfrze["2005"]} &\Sexpr{jmpe["2005"]}  \\ 
-Escarabajos & 2006 & \Sexpr{nme["2006"]} & \Sexpr{sfrze["2006"]} &\Sexpr{jmpe["2006"]}  \\ 
-Escarabajos & 2009-2010 &  \Sexpr{nme["2009"]} &\Sexpr{sfrze["2009"]} &\Sexpr{jmpe["2009"]}  \\ 
-\hline
-Aves & 2001-2002 & \Sexpr{nma["2002"]} & \Sexpr{sfrza["2002"]} &\Sexpr{jmpa["2002"]}  \\ 
-Aves & 2010 &  \Sexpr{nma["2010"]} &\Sexpr{sfrza["2010"]} &\Sexpr{jmpa["2010"]}  \\ 
-\hline
-\end{tabular}
 
-<<echo=false,results=tex>>=
+###################################################
+### chunk number 9: 
+###################################################
+#line 260 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 
 mi.jmp <- jmp.NM[(jmp.NM$tvn %in% tvn.NM$tvn[tvn.NM$yr %in% "2006"]),]
 mi.jmp <- mi.jmp[mi.jmp$NM!="92" & !is.na(mi.jmp$NM),]
@@ -283,10 +214,12 @@ mi.tt <- mi.tt[c(2,6,3,4,5,7),]
 
 ##tapply(mi.jmp$especie,mi.jmp$familia,function(x){length(unique(x))})
 xtable(mi.tt,digits=0,caption=paste(abbreviate(unique(fams)),": ",unique(fams),sep="", collapse="; "))
-@ 
 
 
-<<>>=
+###################################################
+### chunk number 10: 
+###################################################
+#line 285 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 mi.tvn <- tvn.NM[tvn.NM$yr %in% "2006",]
 mi.tvn <- mi.tvn[mi.tvn$NM!="92",]
 mi.tvn$CN <- info.NM$CNEB[match(as.numeric(mi.tvn$NM),info.NM$NM)]
@@ -296,9 +229,12 @@ mi.tvn$bioreg <- CNEB.nm[match(mi.tvn$CN,CNEB.nm$cdg),"bioreg"]
 tapply(mi.tvn$vst,mi.tvn$bioreg, function(x){length(unique(x))})
 mrps.sfrz <- tapply(mi.tvn$sfrz,mi.tvn$NM,sum,na.rm=T)/60
 
-@ 
 
-<<eval=true, show=true>>=
+
+###################################################
+### chunk number 11: 
+###################################################
+#line 297 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 mi.jmp <- jmp.NM[(jmp.NM$tvn %in% tvn.NM$tvn[tvn.NM$yr %in% "2006"])&jmp.NM$fam=="Pieridae" & !is.na(jmp.NM$genero),]
 mi.jmp$esp <- paste(mi.jmp$genero,mi.jmp$especie)
 mi.jmp <- mi.jmp[mi.jmp$NM!="92",]
@@ -309,12 +245,12 @@ mrps.NM <- mrps.NM[,colSums(mrps.NM)>0]
 mrps.CN <- mrps.NM
 rownames(mrps.NM) <- info.NM$Nombre[match(as.numeric(rownames(mrps.NM)),info.NM$NM)]
 rownames(mrps.CN) <- info.NM$CNEB[match(as.numeric(rownames(mrps.CN)),info.NM$NM)]
-@ 
 
 
-\section{Identificación de escarabajos por Solís}
-
-<<eval=true, echo=true>>=
+###################################################
+### chunk number 12: 
+###################################################
+#line 313 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 
 
 
@@ -343,10 +279,12 @@ rownames(scrb.NM) <- info.NM$Nombre[match(rownames(scrb.NM),info.NM$NM)]
 
 dim(scrb.NM[,colSums(scrb.NM)>0])
 
-@ 
 
-\begin{small}     
-<<results=tex>>=
+
+###################################################
+### chunk number 13: 
+###################################################
+#line 345 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 load("~/NeoMapas/Rdata/LIT.rda")
 load("~/NeoMapas/Rdata/MSM.rda")
 
@@ -374,10 +312,12 @@ mi.tt <- cbind(mi.tt,total=rowSums(mi.tt))
 mi.tt <- rbind(mi.tt,total=colSums(mi.tt))
 mi.tt <- mi.tt[c(1,5,2,3,4,6),]
 xtable(mi.tt,digits=0,caption=paste(abbreviate(unique(fams)),": ",unique(fams),sep="", collapse="; "))
-@ 
-\end{small}
 
-<<results=tex>>=
+
+###################################################
+### chunk number 14: 
+###################################################
+#line 376 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 sfrz <- round(tapply(trmp.NM$sfrz,list(trmp.NM$NM,trmp.NM$yr),sum))
 sfrz[is.na(sfrz)] <- 0
 tmp <- info.NM[match(as.numeric(rownames(sfrz)),info.NM$NM),"CNEB"]
@@ -400,11 +340,12 @@ sfrz <- cbind(CNEB=tmp,bioreg=as.character(tmp2),sfrz)
 xtable(sfrz[order(tmp2),],digits=0)
 
 
-@ 
 
-\section{Datos de NeoMapas Aves}
 
-<<eval=true, echo=true>>=
+###################################################
+### chunk number 15: 
+###################################################
+#line 403 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 
 mi.ss <- NM.m1$Especieid!=1379
 mi.s2 <- NM.m2$Especieid!=1379
@@ -425,11 +366,12 @@ rownames(aves.CN) <- info.NM$CNEB[match(rownames(aves.NM),info.NM$Nombre)]
 
 mi.ss <- NM.m2$Especieid!=1379
 m2 <- table(NM.m2$IDTransecta[mi.ss],NM.m2$Especieid[mi.ss])
-@ 
-  
 
-\begin{footnotesize}     
-<<results=tex>>=
+
+###################################################
+### chunk number 16: 
+###################################################
+#line 428 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 load(file="~/NeoMapas/Rdata/MSM.rda")
 fams <- ordo <- c()
 for (i in colnames(aves.NM)) {
@@ -471,11 +413,12 @@ mi.tt <- cbind(mi.tt,total=rowSums(mi.tt))
 mi.tt <- rbind(mi.tt,total=colSums(mi.tt))
 mi.tt <- mi.tt[c(1,5,2,3,4,6),]
 xtable(mi.tt,digits=0,caption=paste(paste(abbreviate(unique(ordo)),": ",unique(ordo),sep="", collapse="; "),". Otros=Tinamiformes, Pelecaniformes, Anseriformes, Craciformes, Galliformes, Gruiformes, Charadriiformes, Cuculiformes, Strigiformes, Trogoniformes, Coraciiformes, Galbuliformes, Piciformes",sep=""))
-@ 
-\end{footnotesize}
 
-\section{Resumen esfuerzo de muestreo}
-<<>>=
+
+###################################################
+### chunk number 17: 
+###################################################
+#line 474 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 tapply(scrb.solis$ttl,scrb.solis$yr,sum)
 
 
@@ -492,10 +435,12 @@ round(t(mi.tt)*100/colSums(mi.tt),2)
 round(100*rowSums(mi.tt[,1:3])/sum(rowSums(mi.tt[,1:3])),2)
 round(100*rowSums(mi.tt[,6:7])/sum(rowSums(mi.tt[,6:7])),2)
 
-@ 
-\section{Mapas}
 
-<<mapaUM,fig=true,echo=false>>=
+
+###################################################
+### chunk number 18: mapaUM
+###################################################
+#line 494 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 
 slc.avs <- info.NM$CNEB[match(rownames(aves.NM),info.NM$Nombre)]
 slc.scrb <- info.NM$CNEB[match(rownames(scrb.NM),info.NM$Nombre)]
@@ -539,23 +484,28 @@ text(xs+.3,ys,paste(abs(ys),"º00' N",sep=""),cex=.7,srt=90)
 legend(-73,5,levels(br)[-1],density=mi.ds[-1],
      angle=mi.ag[-1],bty="n",cex=1.3)
 
-@ 
-
-<<mapaBR1,fig=false, eval=false>>=
-par(mar=c(1,0,2,0))
-
-##Cuadrícula con los códigos en los bordes
-br <- CNEB.nm$bioreg[order(CNEB.nm$row,CNEB.nm$col)]
-plot(CNEB,density=c(0,10,15,20,25,30)[br],
-     border=c(0,"grey77","grey77","grey77","grey77","grey77")[br],
-     angle=c(0,45,30,135,60,45)[br],col="grey77")
-## División política
-plot(vzla[vzla@data$ID!=36,],border=1,add=T)
-
-@ 
 
 
-<<mapaBR2,fig=true>>=
+###################################################
+### chunk number 19: mapaBR1 eval=FALSE
+###################################################
+## #line 540 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
+## par(mar=c(1,0,2,0))
+## 
+## ##Cuadrícula con los códigos en los bordes
+## br <- CNEB.nm$bioreg[order(CNEB.nm$row,CNEB.nm$col)]
+## plot(CNEB,density=c(0,10,15,20,25,30)[br],
+##      border=c(0,"grey77","grey77","grey77","grey77","grey77")[br],
+##      angle=c(0,45,30,135,60,45)[br],col="grey77")
+## ## División política
+## plot(vzla[vzla@data$ID!=36,],border=1,add=T)
+## 
+
+
+###################################################
+### chunk number 20: mapaBR2
+###################################################
+#line 554 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 par(mar=c(1,0,2,0))
 
 ##Cuadrícula con los códigos en los bordes
@@ -587,10 +537,12 @@ legend(-73,5,levels(br)[-1],fill=mi.col[-1],bty="n")
 ##invisible(text(x.mrps, labels=rep("P",nrow(x.mrps)), cex=0.7,col=1))
 ##invisible(text(x.scrb, labels=rep("S",nrow(x.scrb)), cex=0.7,col=1))
 
-@ 
 
 
-<<eval=true, echo=false, results=hide>>=
+###################################################
+### chunk number 21: 
+###################################################
+#line 589 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 require(sp)
 
 lit.scrb <- rownames(scrb.LIT)
@@ -617,11 +569,12 @@ par(mar=c(0,0,3,0))
 ##pdf(file=paste("~/NeoMapas/img/Figs/",mi.dir,"/MAPA_ColectasEscarabajos.pdf",sep=""), width=10, height=8)
 ##dev.off()
 
-@ 
 
-\begin{figure}[htbp]
-\begin{center}
-<<mapas,eval=true, echo=false, results=hide, fig=true>>=
+
+###################################################
+### chunk number 22: mapas
+###################################################
+#line 620 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 layout(matrix(1:4,ncol=2,byrow=T))
 
 ## colocamos los márgenes
@@ -697,16 +650,12 @@ symbols(coordinates(CNEB[CNEB@data$cdg %in% slc.avs,]),circle=rep(1,length(slc.a
 
 
 
-@ 
-\end{center} 
-\caption[Mapa con colectas de los tres grupos]{Mapa con colectas de los tres grupos.}
-\label{MAPA:MRP}
-\end{figure}
 
 
-\section{Datos de fuentes alternativas}
-
-<<>>=
+###################################################
+### chunk number 23: 
+###################################################
+#line 705 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 load("~/NeoMapas/Rdata/LIT.rda")
 load("~/NeoMapas/Rdata/MSM.rda")
 
@@ -732,16 +681,12 @@ sum(colSums(scrb.LIT.um)>0)
 sum(colSums(mrps.MSM.um)>0)
 sum(colSums(mrps.MSM)>0)
 
-@ 
-
-\chapter{Resultados}
 
 
-\section{Comparación de cobertura y riqueza entre fuentes}
-
-La curva de acumulación de especies a nivel nacional muestra que los muestreos de NeoMapas no alcanzan un inventario total de las especies. Sólo para el caso de la familia pieridae se observa una saturación, pero el número de especies alcanzado está aún por debajo del número de especies conocidas para el país.
-
-<<eval=true,echo=true,fig=false>>=
+###################################################
+### chunk number 24: 
+###################################################
+#line 740 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 ## solo las especies con nombre
 scrb.tau <- specaccum(scrb.NM[,-grep(".sp",colnames(scrb.NM))],method="exact",conditioned=FALSE,gamma="chao")
 scrb.tds.tau <- specaccum(scrb.NM,method="exact",conditioned=FALSE,gamma="chao")
@@ -759,9 +704,12 @@ max.scrb <- length(unique(scrb.BDV$nombre[scrb.BDV$cdg_ref=="scarabnet"]))
 max.mrps <- 106
 max.aves <- 1382
 
-@ 
 
-<<eval=true,echo=true,fig=false>>=
+
+###################################################
+### chunk number 25: 
+###################################################
+#line 760 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 
 mrps.NM.alpha <- rowSums(mrps.NM>0)
 scrb.NM.alpha <- rowSums(scrb.NM>0)
@@ -777,9 +725,12 @@ scrb.cneb <- CNEB.nm[match(scrb.CN,CNEB.nm$cdg),]
 scrb.lit.cneb <- CNEB.nm[match(rownames(scrb.LIT.um),CNEB.nm$cdg),]
 aves.cneb <- aves.lit.cneb <- CNEB.nm[match(rownames(aves.CN),CNEB.nm$cdg),]
 
-@ 
 
-<<eval=true,echo=false,results=hide,fig=true,width=8,height=8>>=
+
+###################################################
+### chunk number 26: 
+###################################################
+#line 778 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 cols <- c("grey42","grey77")
 ## realizamos una figura con las curvas para cada grupo
 layout(matrix(1:4,ncol=2,byrow=T))
@@ -818,9 +769,12 @@ title(xlab="Número de celdas", ylab="Número de especies", outer=T)
 
 symbols(c(1,2),c(1,1),boxplots=matrix(c(.5,2,0,0,.5,.5,2,0,0,.5),ncol=5,byrow=T),bg=cols,fg=cols,lwd=2,xlim=c(0.7,3),axes=F)
 text(c(1.5,2.5),c(1,1),c("NeoMapas","Other\nsources"))
-@
 
-<<eval=true,echo=false,results=hide,fig=true,width=8,height=8>>=
+
+###################################################
+### chunk number 27: 
+###################################################
+#line 819 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 cols <- c("grey42","grey77")
 ## realizamos una figura con las curvas para cada grupo
 layout(matrix(1:4,ncol=2,byrow=T))
@@ -863,10 +817,12 @@ points(c(1,2),c(1.85,1.85))
 text(c(1.5,1.5,1.5,1.5,1.5,1.5),c(0.35,0.75,1,1.25,1.65, 1.85),c("mínimum within\n1.5 interquantile\nrange","25%","50%","75%","maximum within\n1.5 interquantile\nrange","outlying observation"),cex=.75)
 
 text(c(1,2),c(.29,.29),c("NeoMapas","Other\nsources"))
-@ 
 
-\begin{small}     
-<<eval=true, echo=true, fig=false, results=tex>>=
+
+###################################################
+### chunk number 28: 
+###################################################
+#line 865 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 dts.scrb <- dts.mrps <- dts.aves <- data.frame()
 for (br in levels(CNEB.nm$bioreg)[-1]) {
  
@@ -978,22 +934,12 @@ dts.mrps <- rbind(dts.mrps,
 xtable(dts.scrb)
 xtable(dts.mrps)
 xtable(dts.aves)
-@ 
-\end{small}
 
 
-¿Qué tan bien está NeoMapas Aves comparado con el total?: \Sexpr{paste(dts.aves$bioreg,"=",round(100*dts.aves$spp.NM/dts.aves$total,2),collapse=", ")}.
-
-¿Qué tan bien está NeoMapas Mariposas comparado con el total?: \Sexpr{paste(dts.mrps$bioreg,"=",round(100*dts.mrps$spp.NM/dts.mrps$total,2),collapse=", ")}.
-
-¿Qué tan bien está NeoMapas Escarabajos comparado con el total?: \Sexpr{paste(dts.scrb$bioreg,"=",round(100*dts.scrb$spp.NM/dts.scrb$total,2),collapse=", ")}.
-
-
-\section{Composición}
-
-Realizamos un análisis de composición basado en medidas de distancia biótica o disimilitud. Primero calculamos matrices de distancia entre las regiones de colecta basados en los índices de \emph{jaccard}, \emph{mountford}, y \emph{chao} para cada uno de los grupos taxonómicos. A cada matriz le aplicamos un algoritmo de clasificación jerárquica por aglomeración y calculamos el coeficiente de aglomeración de la clasificación obtenida ($c_{ag}$). El coeficiente de aglomeración se basa en la relación entre la disimilitud de cada uno de los pasos del algoritmo y la disimilitud del paso final y por tanto es una medida de la estructura de la clasificación obtenida. Valores de $c_{ag}$ cercanos a 1 indican mayor estructura y valores cercanos a 1 indican menor estructura.
-
-<<eval=true, echo=false, fig=false,results=tex>>=
+###################################################
+### chunk number 29: 
+###################################################
+#line 992 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 dts <- c()
 mtds <- c("mountford","jaccard","chao")
 for (mtd in mtds) {
@@ -1011,49 +957,60 @@ xtable(matrix(dts,ncol=3,
          mtds)),
        caption="Coeficiente de aglomeración según un algoritmo de aglomeración jerárquica (agnes) para tres medidas de disimilitud biótica y los tres grupos de estudio de NeoMapas.")
 
-@ 
 
-Los resultados indican que las matrices construidas con el índice de \emph{chao} tienen mayor estructura que las matrices construidas con los otros índices. Por otro lado la matriz de distancias basadas en los datos de las Piérides están más estructuradas que las de los otros grupos.
 
-<<eval=true, echo=false, results=hide, fig=true>>=
+###################################################
+### chunk number 30: 
+###################################################
+#line 1014 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 plot(mi.h0,which.plots=2)
-@ 
 
 
-<<eval=true, echo=false, results=hide, fig=true>>=
+###################################################
+### chunk number 31: 
+###################################################
+#line 1019 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 plot(mi.h1,which.plots=2)
-@ 
 
 
-<<eval=true, echo=false, fig=true>>=
+###################################################
+### chunk number 32: 
+###################################################
+#line 1024 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 plot(mi.h2,which.plots=2)
-@ 
 
 
-
-Para ver cuales variables explican mejor las diferencias en composición podemos hacer un análisis de MANOVA permutacional (adonis).
-
-<<eval=true, echo=true, fig=false>>=
+###################################################
+### chunk number 33: 
+###################################################
+#line 1032 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 mrps.cneb <- CNEB.nm[match(rownames(mrps.CN),CNEB.nm$cdg),]
 table(mrps.cneb[,c("bioreg","est.pr")])
 ##adonis(mi.d1~bioreg+est.pr,scrb.cneb)
 adonis(mi.d0~bioreg+(PC1+PC2+PC3),mrps.cneb)
-@ 
-<<eval=true, echo=true, fig=false>>=
-table(scrb.cneb[,c("bioreg","est.pr")])
+
+
+###################################################
+### chunk number 34: 
+###################################################
+#line 1038 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 ##adonis(mi.d1~bioreg+est.pr,scrb.cneb)
 adonis(mi.d1~bioreg+(PC1+PC2+PC3),scrb.cneb)
-@ 
 
-<<eval=true, echo=true, fig=false>>=
+
+###################################################
+### chunk number 35: 
+###################################################
+#line 1043 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 table(aves.cneb[,c("bioreg","est.pr")])
 ##adonis(mi.d1~bioreg+est.pr,scrb.cneb)
 adonis(mi.d2~bioreg+(PC1+PC2+PC3),aves.cneb)
-@ 
 
-Hacemos un análisis de coordenadas principales para ver como explican las variables seleccionadas la relación entre especies y regiones. En la figura observamos el resultado del análisis de escarabajos basado en la raíz cuadrada de la distancia de \emph{chao}. Se observan las variables en azul (flechas para las variables continuas y nombre para las categóricas), los nombres de las localidades en gris y las especies en rojo. Se colocan los nombres de las especies que se pueden considerar indicadoras de las demás especies.
 
-<<eval=true, echo=true, fig=true>>=
+###################################################
+### chunk number 36: 
+###################################################
+#line 1051 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 
 x <- capscale(scrb.NM~PC1+PC2+PC3+bioreg,data=scrb.cneb,
               sqrt.dist = TRUE,
@@ -1067,50 +1024,64 @@ points(x,scaling=-1,display="sp",col=2,pch=3,cex=.6,select=colnames(scrb.NM)[row
 text(x,scaling=-1,display="sp",select=colnames(scrb.NM)[rowSums(indpower(scrb.NM),na.rm=T)>43],cex=.5,col=2)
 
 
-@ 
 
-Otra selección de especies: valor indicador para una región o una combinación de variables ambientales
 
-\section{Abundancia}
-
-Datos de museos.
-<<>>=
+###################################################
+### chunk number 37: 
+###################################################
+#line 1072 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 mi.tt <- aggregate(jmp.Museos,list(jmp.Museos$especie),function(x){length(unique(x))})
 mi.tt
-@ 
 
 
-<<fig=true>>=
+###################################################
+### chunk number 38: 
+###################################################
+#line 1078 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 plot(rowSums(mrps.NM),rowSums(mrps.NM>0),xlab="Nr. ejemplares",ylab="Nr. Especies")
-@ 
 
-<<fig=true>>=
+
+###################################################
+### chunk number 39: 
+###################################################
+#line 1082 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 ##plot(rowSums(scrb.NM),rowSums(scrb.NM>0))
 plot(log(rowSums(scrb.NM)),log(rowSums(scrb.NM>0)),xlab="Nr. ejemplares",ylab="log(H)",ylim=c(0,5))
 points(log(rowSums(scrb.NM)),renyi(scrb.NM,scale=2),col=2)
 points(log(rowSums(scrb.NM)),renyi(scrb.NM,scale=4),col=4)
-@ 
 
-<<fig=true>>=
+
+###################################################
+### chunk number 40: 
+###################################################
+#line 1089 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 
 ##plot(scrb.sfrz,log(rowSums(scrb.NM>0)))
 plot(rowSums(scrb.NM)/scrb.sfrz,rowSums(scrb.NM>0),col=1+(scrb.sfrz<4500 | scrb.sfrz>5500))
 
-@ 
-<<fig=true>>=
+
+
+###################################################
+### chunk number 41: 
+###################################################
+#line 1095 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 
 ##plot(mrps.sfrz,log(rowSums(mrps.NM>0)))
 plot(rowSums(mrps.NM)/mrps.sfrz,rowSums(mrps.NM>0),col=1+(mrps.sfrz<35 | mrps.sfrz>65))
 
-@ 
 
-<<fig=true>>=
+
+###################################################
+### chunk number 42: 
+###################################################
+#line 1102 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 plot(rowSums(aves.NM),rowSums(aves.NM>0))
-@ 
 
-Determinamos varias variables
 
-<<echo=false, results=hide>>=
+###################################################
+### chunk number 43: 
+###################################################
+#line 1108 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 abnd.scrb <- apply(log1p(scrb.NM),1,sd)
 abnd.aves <- apply(log1p(aves.NM),1,sd)
 abnd.mrps <- apply(log1p(mrps.NM),1,sd)
@@ -1131,93 +1102,20 @@ H1.mrps <- renyi(mrps.NM,scales=1)
 ACE.scrb <- estimateR(scrb.NM)["S.ACE",]
 ACE.aves <- estimateR(aves.NM)["S.ACE",]
 ACE.mrps <- estimateR(mrps.NM)["S.ACE",]
-## realmente, según el código de estimateR es standard deviation
-se.scrb <- estimateR(scrb.NM)["se.ACE",]
-se.aves <- estimateR(aves.NM)["se.ACE",]
-se.mrps <- estimateR(mrps.NM)["se.ACE",]
 
-@ 
-
-<<echo=false, results=hide>>=
-require(gtools)
-## según sugerencia de Kate
-	aics.ttl <- data.frame()
-	mis.vars <- c("bioreg","PC1","PC2","PC3")
-	##mis.vars <- c("bioreg","bosq_avrg","prcp_avrg","tmpm_avrg")
-	k <- length(mis.vars)
-	tds.vars <- "bioreg+PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10"
-	##tds.vars <- "bioreg+PC1+PC2+PC3"
-aves.sfrz <- NULL
-for (grp in c("aves","scrb","mrps")) {
-	mi.cneb <- get(paste(grp,"cneb",sep="."))
-for (mi.vd in c("abnd","H0","ACE")) {
-	
-	switch(mi.vd, ACE= {## usamos 1/sigma^2
-		mi.wg <- 1/(get(paste("se",grp,sep="."))^2)
-		},
-		H0={
-		mi.wg <- NULL
-		},
-		abnd={
-		mi.wg <- (get(paste(grp,"sfrz",sep=".")))
-		})
-		
-	aics <- data.frame()
-	mi.lm <- lm(formula(paste(paste(mi.vd, grp, sep="."), "~", 1)),data=mi.cneb, weights=mi.wg)
-	aics <- data.frame(grp=grp, vd=mi.vd, formula="~1", R2.adj=summary(mi.lm)$adj.r.squared, logLik=logLik(mi.lm)[[1]], k=mi.lm$rank+1, n=nrow(mi.lm$model), AIC=AIC(mi.lm), deltaAIC=NA, wi=NA, aic.weights=NA)			
-	
-	for (i in 1:k) {
-		kiis <- combinations(k,i)
-		for (j in 1:nrow(kiis)) {
-			mi.frm <- paste(paste(mi.vd, grp, sep="."), "~", paste(mis.vars[kiis[j,]], collapse="+"))
-			mi.lm <- lm(formula(mi.frm),data=mi.cneb, weights=mi.wg)
-			aics <- rbind(aics, data.frame(grp=grp,vd=mi.vd, formula=paste(mis.vars[kiis[j,]], collapse="+"), R2.adj=summary(mi.lm)$adj.r.squared, logLik=logLik(mi.lm)[[1]], k=mi.lm$rank+1,n=nrow(mi.lm$model), AIC=AIC(mi.lm), deltaAIC=NA,wi=NA, aic.weights=NA))			
-		}
-	}
-	
-
-	aics$AICc <- aics$AIC + (2*aics$k*(aics$k+1))/(aics$n-aics$k-1)
-	
-	aics$deltaAIC <- aics$AICc - min(aics$AICc)
-	aics$wi<-exp(1)^(-0.5*aics$deltaAIC)
-	aics$aic.weights<-aics$wi/sum(aics$wi)
-
-	mi.lm <- lm(formula(paste(paste(mi.vd,grp,sep="."),"~",
-			tds.vars)),data=mi.cneb, weights=mi.wg)
-	mi.st <- step(mi.lm)			
-	aics <- rbind(aics, data.frame(grp=grp,vd=mi.vd, formula=paste(colnames(mi.st$model)[2:(ncol(mi.st$model))]
-, collapse=" + "), R2.adj=summary(mi.st)$adj.r.squared, logLik=logLik(mi.st)[[1]],k=mi.st$rank+1, n=nrow(mi.st$model),  	AIC=AIC(mi.st),deltaAIC=NA, wi=NA, aic.weights=NA, AICc=NA))
-
-	aics <- rbind(aics, data.frame(grp=grp, vd=mi.vd, formula=tds.vars, R2.adj=summary(mi.lm)$adj.r.squared, logLik=logLik(mi.lm)[[1]],k=mi.lm$rank+1, n=nrow(mi.lm$model), AIC=AIC(mi.lm), deltaAIC=NA, wi=NA,aic.weights=NA, AICc=NA))
-
-	aics.ttl <- rbind(aics.ttl,aics)
-}
-}
-
-aics.ttl$AICc <- aics.ttl$AIC + (2*aics.ttl$k*(aics.ttl$k+1))/(aics.ttl$n-aics.ttl$k-1)
-
-tmp <-  aics.ttl[aics.ttl$vd=="H0" & aics.ttl$grp=="aves",]
-tmp <- aics.ttl
-tmp$deltaAIC <- tmp$AICc - min(tmp$AICc)
-	tmp$wi<-exp(1)^(-0.5*tmp$deltaAIC)
-	tmp$aic.weights<-tmp$wi/sum(tmp$wi)
-
-tmp[tmp$aic.weights>.15,]
+se.scrb <- 1/estimateR(scrb.NM)["se.ACE",]
+se.aves <- 1/estimateR(aves.NM)["se.ACE",]
+se.mrps <- 1/estimateR(mrps.NM)["se.ACE",]
 
 
-aics.ttl[aics.ttl$aic.weights>.15 | is.na(aics.ttl$aic.weights),]
 
-aics.ttl[aics.ttl$deltaAIC<2 & !is.na(aics.ttl$aic.weights),]
-
-
-aics.ttl[aics.ttl$aic.weights>.15 & !is.na(aics.ttl$aic.weights),c("grp","vd","formula","k","n","logLik","AICc","aic.weights","R2.adj")]
-
-
+###################################################
+### chunk number 44: 
+###################################################
+#line 1136 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 lm.abnd.aves <- lm(abnd.aves~bioreg+PC1+PC2+PC3,data=aves.cneb)
 lm.abnd.scrb <- lm(abnd.scrb~bioreg+PC1+PC2+PC3,data=scrb.cneb,weights=scrb.sfrz)
 lm.abnd.mrps <- lm(abnd.mrps~bioreg+PC1+PC2+PC3,data=mrps.cneb,weights=mrps.sfrz)
-
-lm.ACE.aves <- lm(ACE.aves~bioreg+PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10,data=aves.cneb,weights=se.aves)
 
 lm.H0.aves <- lm(H0.aves~bioreg+PC1+PC2+PC3,data=aves.cneb)
 lm.H0.scrb <- lm(H0.scrb~bioreg+PC1+PC2+PC3,data=scrb.cneb,weights=scrb.sfrz)
@@ -1230,9 +1128,12 @@ lm.H0.mrps <- lm(H0.mrps~bioreg+PC1+PC2+PC3,data=mrps.cneb,weights=mrps.sfrz)
 lm.ACE.aves <- lm(ACE.aves~bioreg+PC1+PC2+PC3,data=aves.cneb,weights=se.aves)
 lm.ACE.scrb <- lm(ACE.scrb~bioreg+PC1+PC2+PC3,data=scrb.cneb,weights=se.scrb)
 lm.ACE.mrps <- lm(ACE.mrps~bioreg+PC1+PC2+PC3,data=mrps.cneb,weights=se.mrps)
-@ 
 
-<<echo=false, results=hide>>=
+
+###################################################
+### chunk number 45: 
+###################################################
+#line 1154 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 step.abnd.mrps <- step(lm.abnd.mrps)
 step.abnd.scrb <- step(lm.abnd.scrb)
 step.abnd.aves <- step(lm.abnd.aves)
@@ -1249,30 +1150,34 @@ step.ACE.mrps <- step(lm.ACE.mrps)
 step.ACE.scrb <- step(lm.ACE.scrb)
 step.ACE.aves <- step(lm.ACE.aves)
 
-@ 
-Resultados de los modelos completos
-<<echo=false, eval=false, results=hide>>=
-summary(lm.abnd.mrps)
-summary(lm.abnd.aves)
-summary(lm.abnd.scrb)
 
-##summary(lm.H1.mrps)
-##summary(lm.H1.aves)
-##summary(lm.H1.scrb)
 
-summary(lm.H0.mrps)
-summary(lm.H0.aves)
-summary(lm.H0.scrb)
+###################################################
+### chunk number 46:  eval=FALSE
+###################################################
+## #line 1173 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
+## summary(lm.abnd.mrps)
+## summary(lm.abnd.aves)
+## summary(lm.abnd.scrb)
+## 
+## ##summary(lm.H1.mrps)
+## ##summary(lm.H1.aves)
+## ##summary(lm.H1.scrb)
+## 
+## summary(lm.H0.mrps)
+## summary(lm.H0.aves)
+## summary(lm.H0.scrb)
+## 
+## summary(lm.ACE.mrps)
+## summary(lm.ACE.aves)
+## summary(lm.ACE.scrb)
+## 
 
-summary(lm.ACE.mrps)
-summary(lm.ACE.aves)
-summary(lm.ACE.scrb)
 
-@ 
-
-Resultados de los modelos de regresión con selección paso a paso.
-
-<<>>=
+###################################################
+### chunk number 47: 
+###################################################
+#line 1194 "~/NeoMapas/doc/200_InformeNeoMapas2010/Documento1_InformeActividadesNeoMapas.Rnw"
 summary(step.abnd.mrps)
 summary(step.abnd.aves)
 summary(step.abnd.scrb)
@@ -1288,32 +1193,5 @@ summary(step.H0.scrb)
 summary(step.ACE.mrps)
 summary(step.ACE.aves)
 summary(step.ACE.scrb)
-@ 
 
 
-\section{Especies raras/no detectadas}
-
-<<fig=true>>=
-tt <- colSums(mrps.MSM>0)
-names(tt) <- paste(Mariposas$gen[match(names(tt),Mariposas$cdg)], Mariposas$esp[match(names(tt),Mariposas$cdg)], sep=" ")
-
-t2 <- colSums(mrps.NM>0)
-
-df <- merge(data.frame(tt),data.frame(t2),by="row.names",all=T)
-plot(t2~tt,df)
-
-layout(matrix(1:2,ncol=1))
-truehist(df[!is.na(df$t2),"tt"],prob=F)
-truehist(df[is.na(df$t2),"tt"],prob=F)
-
-df[is.na(df$t2) & df$tt>5,]
-df[is.na(df$t2) & df$tt<5,]
-df[is.na(df$t2) & df$tt<3,]
-
-@
-
-\chapter{Discusión y Sugerencias}
-\bibliography{/Users/jferrer/NeoMapas/lib/BibTEX/DocumentosNM}
-
-
-\end{document}
