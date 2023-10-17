@@ -1,4 +1,4 @@
-# Introduction
+# NeoMapas
 
 La Iniciativa para el Mapeo de la Diversidad Neotropical, \emph{NeoMapas}, propone una estrategia para el inventario y seguimiento de taxones indicadores a nivel nacional y regional, y para la generación de mapas de distribución, abundancia, riqueza y diversidad de especies.
 Aunque inicialmente el trabajo de NeoMapas se ha concentrado en tres taxones animales de Venezuela (las mariposas diurnas, los escarabajos coprófagos y las aves), el diseño muestral es fácilmente adaptable a otros países y %es posible adaptar métodos de captura para 
@@ -7,12 +7,11 @@ otros taxones.
 NeoMapas propone resolver simultáneamente el problema de tiempo y costo asociado a evaluaciones de cobertura geográfica extensa, mientras fortalece la capacidad técnica local para llevarlas a cabo [@RS02]. Para lograr esto es necesario cumplir con un diseño y protocolo de campo científicamente riguroso, pero sencillo de implementar y repetir en otras regiones, y optimizar la inversión de recursos para lograr una cobertura geográfica completa en un corto periodo de tiempo. Los datos generados podrán ser contrastados entre regiones y, mediante la aplicación de métodos predictivos, serán utilizados para generar mapas a gran escala de la distribución y abundancia de los taxones seleccionados.
 
 NeoMapas tiene cinco características distintivas:
-\begin{enumerate}
-   \item Utiliza un diseño de muestreo estratificado y técnicas de interpolación espacial para minimizar el esfuerzo de muestreo necesario para generar mapas de distribución y abundancia para taxones seleccionados a nivel nacional y regional,
-   \item Utiliza un esfuerzo de muestreo calibrado que permitirá comparar los datos generales con los de otras regiones tropicales,
-   \item Se fundamenta en grupos de trabajo que combinan el esfuerzo de estudiantes, voluntarios y expertos nacionales y extranjeros, de tal forma que permite desarrollar y fortalecer la capacidad técnica nacional,
-   \item Se basa en métodos simples y rigurosos que pueden ser reproducidos en otras regiones,
-   \item Es rápido y eficiente, pues permite generar datos suficientes para un país del tamaño de Venezuela en un periodo de seis meses a un año.
-\end{enumerate}
+
+1. Utiliza un diseño de muestreo estratificado y técnicas de interpolación espacial para minimizar el esfuerzo de muestreo necesario para generar mapas de distribución y abundancia para taxones seleccionados a nivel nacional y regional,
+1. Utiliza un esfuerzo de muestreo calibrado que permitirá comparar los datos generales con los de otras regiones tropicales,
+1. Se fundamenta en grupos de trabajo que combinan el esfuerzo de estudiantes, voluntarios y expertos nacionales y extranjeros, de tal forma que permite desarrollar y fortalecer la capacidad técnica nacional,
+1. Se basa en métodos simples y rigurosos que pueden ser reproducidos en otras regiones,
+1. Es rápido y eficiente, pues permite generar datos suficientes para un país del tamaño de Venezuela en un periodo de seis meses a un año.
 
 Después de 10 años de continuos esfuerzos podemos reportar ahora las actividades, productos y resultados obtenidos con la ayuda de muchos colaboradores.

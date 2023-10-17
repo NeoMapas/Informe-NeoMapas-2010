@@ -5,7 +5,7 @@ book:
   title: "Informe de resultados de muestreos de NeoMapas a nivel nacional 2001 a 2010"
   author: 
     - "JR Ferrer-Paris"
-    - "Jon Paul Rodríguez""
+    - "Jon Paul Rodríguez"
     - "Ada Y. Sánchez-Mercado"
     - "Gustavo A. Rodríguez"
   date: "17/03/2010"
@@ -16,6 +16,8 @@ book:
     - references.qmd
 
 bibliography: bibtex/DocumentosNM.bib
+
+lang: es
 
 format:
   html:
